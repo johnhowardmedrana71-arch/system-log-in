@@ -13,6 +13,7 @@
             height: 100vh;
             width: 100vw;
             background: #ffffff;
+            font-family: Arial, sans-serif;
         }
         .wrapper{  
             width: 400px;
@@ -50,10 +51,29 @@
             font-size: 16px;
             outline: none;
             background: #fff;
+            box-sizing: border-box; /* Para hindi lumampas ang padding */
         }
 
         .input-box input:focus {
             border-color: maroon;
+        }
+
+        /* Istilo para sa Show Password section */
+        .show-password-container {
+            width: 90%;
+            text-align: left;
+            margin: -5px 0 15px 0;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .show-password-container input {
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: maroon; /* Kulay ng checkbox kapag naka-check */
         }
 
         .btn{
@@ -128,6 +148,10 @@
                 <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
             </div>
             
+            <div class="show-password-container">
+                <label><input type="checkbox" id="togglePassword"> Show Password</label>
+            </div>
+            
             <button type="submit" class="btn">Create Account</button>
 
             <div class="register-link">
@@ -145,6 +169,20 @@
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const errorDisplay = document.getElementById('errorDisplay');
+        
+        // DAGDAG: Element para sa toggling ng password visibility
+        const togglePassword = document.getElementById('togglePassword');
+
+        // DAGDAG: Function para baguhin ang uri ng input (mula 'password' patungong 'text')
+        togglePassword.addEventListener('change', function() {
+            if (this.checked) {
+                passwordInput.type = 'text';
+                confirmPasswordInput.type = 'text';
+            } else {
+                passwordInput.type = 'password';
+                confirmPasswordInput.type = 'password';
+            }
+        });
 
         registerForm.addEventListener('submit', function(event) {
             event.preventDefault(); 
@@ -163,7 +201,7 @@
                 return;
             }
 
-            // NEW Validation Check 2: Password Complexity Enforcement
+            // Validation Check 2: Password Complexity Enforcement
             const hasLetters = /[a-zA-Z]/.test(password);
             const hasUppercase = /[A-Z]/.test(password);
             const isAllNumbers = /^\d+$/.test(password);

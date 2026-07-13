@@ -65,6 +65,24 @@
             border-color: maroon;
         }
 
+        /* DAGDAG: Istilo para sa Show Password checkbox upang maging pantay ang layout */
+        .show-password-container {
+            width: 100%;
+            text-align: left;
+            margin: -5px 0 15px 0;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .show-password-container input {
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: maroon; /* Kulay maroon kapag naka-tsek */
+        }
+
         .forgot-password {
             text-align: center;
             margin: 15px 0;
@@ -143,6 +161,10 @@
                 <input type="password" id="password" name="password" placeholder="Password" required>
             </div>
 
+            <div class="show-password-container">
+                <label><input type="checkbox" id="togglePassword"> Show Password</label>
+            </div>
+
             <div class="forgot-password">
                 <a href="forgorp.html">Forgot Password?</a>
             </div>
@@ -162,6 +184,18 @@
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
         const errorDisplay = document.getElementById('errorDisplay');
+        
+        // DAGDAG: Kuhanin ang element ng checkbox
+        const togglePassword = document.getElementById('togglePassword');
+
+        // DAGDAG: Event listener para magpalit ang uri ng password input
+        togglePassword.addEventListener('change', function() {
+            if (this.checked) {
+                passwordInput.type = 'text'; // Ipakita ang text
+            } else {
+                passwordInput.type = 'password'; // Itago muli
+            }
+        });
 
         // Static fallback admin account credentials
         const fallbackAdminUser = "admin";

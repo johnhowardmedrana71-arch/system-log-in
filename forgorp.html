@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Teacher: ScanCheck</title>
+    <title>Forgot Password: ScanCheck</title>
     <link rel="stylesheet" href="style.css"> 
     <style>
         body {
@@ -13,6 +13,7 @@
             height: 100vh;
             width: 100vw;
             background: #ffffff;
+            font-family: sans-serif;
         }
         .wrapper{  
             width: 400px;
@@ -32,8 +33,15 @@
             text-align: center;
             font-size: 18px;
             color: #555;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-weight: normal;
+        }
+        .instructions {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.4;
         }
 
         .input-box {
@@ -50,10 +58,29 @@
             font-size: 16px;
             outline: none;
             background: #fff;
+            box-sizing: border-box;
         }
 
         .input-box input:focus {
             border-color: maroon;
+        }
+
+        /* Istilo para sa Show Password container */
+        .show-password-container {
+            width: 90%;
+            text-align: left;
+            margin: -5px 0 15px 0;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .show-password-container input {
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: maroon;
         }
 
         .btn{
@@ -74,130 +101,183 @@
             background: #600000;
         }
 
-        .register-link {
+        .links-container {
             margin-top: 20px;
         }
 
-        .register-link p {
+        .links-container p {
             font-size: 15px;
             color: #333;
         }
 
-        .register-link a {
+        .links-container a {
             color: maroon;
             text-decoration: none;
             font-weight: bold;
         }
 
-        .register-link a:hover {
+        .links-container a:hover {
             text-decoration: underline;
         }
 
-        .error-message {
-            color: #dc3545;
+        .message-display {
             font-size: 14px;
             margin-bottom: 10px;
             min-height: 20px;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="wrapper">
-        <form id="scanCheckRegisterForm">
-            <h1>Register</h1>
-            <h2>Teacher Portal</h2>
+        <form id="scanCheckForgotForm">
+            <div id="stepVerify">
+                <h1>Reset Password</h1>
+                <h2>Teacher Portal</h2>
+                
+                <p class="instructions">Enter your registered username and Gmail address to find your account.</p>
 
-            <center>
-            <div id="errorDisplay" class="error-message"></div>
+                <center>
+                <div id="messageDisplay1" class="message-display"></div>
 
-            <div class="input-box">
-                <input type="text" id="username" name="username" placeholder="Choose Username" required>
+                <div class="input-box">
+                    <input type="text" id="username" placeholder="Enter Username" required>
+                </div>
+
+                <div class="input-box">
+                    <input type="email" id="email" placeholder="Enter Gmail Address" required>
+                </div>
+                
+                <button type="button" id="btnCheckAccount" class="btn">Verify</button>
+
+                <div class="links-container">
+                    <p>Remembered your password? <a href="log.html"><b>Login</b></a></p>
+                </div>
+                </center>
             </div>
 
-            <div class="input-box">
-                <input type="email" id="email" name="email" placeholder="Enter Gmail Address" required>
-            </div>
+            <div id="stepNewPassword" class="hidden">
+                <h1>New Password</h1>
+                <h2>Teacher Portal</h2>
+                
+                <p class="instructions">Create a new secure password for your account.</p>
 
-            <input type="hidden" id="role" name="role" value="teacher">
+                <center>
+                <div id="messageDisplay2" class="message-display"></div>
 
-            <div class="input-box">
-                <input type="password" id="password" name="password" placeholder="Create Password" required>
-            </div>
+                <div class="input-box">
+                    <input type="password" id="newPassword" placeholder="Enter New Password" required>
+                </div>
 
-            <div class="input-box">
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
-            </div>
-            
-            <button type="submit" class="btn">Create Account</button>
+                <div class="input-box">
+                    <input type="password" id="confirmPassword" placeholder="Confirm New Password" required>
+                </div>
 
-            <div class="register-link">
-                <p>Already have an account? <a href="index.html"><b>Login</b></a></p>
+                <div class="show-password-container">
+                    <label><input type="checkbox" id="togglePassword"> Show Password</label>
+                </div>
+                
+                <button type="submit" class="btn">Update</button>
+                </center>
             </div>
-            </center>
         </form>
     </div>
 
     <script>
-        const registerForm = document.getElementById('scanCheckRegisterForm');
+        const forgotForm = document.getElementById('scanCheckForgotForm');
         const usernameInput = document.getElementById('username');
         const emailInput = document.getElementById('email');
-        const roleInput = document.getElementById('role');
-        const passwordInput = document.getElementById('password');
+        
+        const stepVerify = document.getElementById('stepVerify');
+        const stepNewPassword = document.getElementById('stepNewPassword');
+        
+        const messageDisplay1 = document.getElementById('messageDisplay1');
+        const messageDisplay2 = document.getElementById('messageDisplay2');
+        
+        const btnCheckAccount = document.getElementById('btnCheckAccount');
+        const newPasswordInput = document.getElementById('newPassword');
         const confirmPasswordInput = document.getElementById('confirmPassword');
-        const errorDisplay = document.getElementById('errorDisplay');
+        const togglePassword = document.getElementById('togglePassword'); // Element ng Checkbox
 
-        registerForm.addEventListener('submit', function(event) {
+        let currentUsers = [];
+        let matchedUserIndex = -1;
+
+        // 1. PAG-VERIFY NG ACCOUNT
+        btnCheckAccount.addEventListener('click', function() {
+            const username = usernameInput.value.trim().toLowerCase();
+            const email = emailInput.value.trim().toLowerCase();
+
+            messageDisplay1.innerText = ""; 
+            messageDisplay1.className = "message-display"; 
+
+            if (!username || !email) {
+                messageDisplay1.innerText = "Please fill in all fields.";
+                messageDisplay1.classList.add('error');
+                return;
+            }
+
+            currentUsers = JSON.parse(localStorage.getItem('scanCheckUsers')) || [];
+
+            matchedUserIndex = currentUsers.findIndex(user => 
+                user.username.toLowerCase() === username && 
+                user.email.toLowerCase() === email
+            );
+
+            if (matchedUserIndex === -1) {
+                messageDisplay1.innerText = "No matching account found with those credentials.";
+                messageDisplay1.classList.add('error');
+                return;
+            }
+
+            stepVerify.classList.add('hidden');
+            stepNewPassword.classList.remove('hidden');
+        });
+
+        // 2. LOHIKA PARA SA SHOW/HIDE PASSWORD
+        togglePassword.addEventListener('change', function() {
+            if (this.checked) {
+                newPasswordInput.type = 'text';
+                confirmPasswordInput.type = 'text';
+            } else {
+                newPasswordInput.type = 'password';
+                confirmPasswordInput.type = 'password';
+            }
+        });
+
+        // 3. PAG-SAVE NG BAGONG PASSWORD
+        forgotForm.addEventListener('submit', function(event) {
             event.preventDefault(); 
 
-            const username = usernameInput.value.trim();
-            const email = emailInput.value.trim();
-            const role = roleInput.value; 
-            const password = passwordInput.value;
+            const newPassword = newPasswordInput.value;
             const confirmPassword = confirmPasswordInput.value;
 
-            errorDisplay.innerText = ""; 
+            messageDisplay2.innerText = ""; 
+            messageDisplay2.className = "message-display"; 
 
-            // Validation Check 1: Passwords Match
-            if (password !== confirmPassword) {
-                errorDisplay.innerText = "Passwords do not match.";
+            if (newPassword !== confirmPassword) {
+                messageDisplay2.innerText = "Passwords do not match.";
+                messageDisplay2.classList.add('error');
                 return;
             }
 
-            // NEW Validation Check 2: Password Complexity Enforcement
-            const hasLetters = /[a-zA-Z]/.test(password);
-            const hasUppercase = /[A-Z]/.test(password);
-            const isAllNumbers = /^\d+$/.test(password);
-
-            if (isAllNumbers) {
-                errorDisplay.innerText = "Password cannot be entirely numbers.";
-                return;
-            }
-            if (!hasLetters || !hasUppercase) {
-                errorDisplay.innerText = "Password must include letters and at least one uppercase letter (Caps).";
-                return;
-            }
-
-            let currentUsers = JSON.parse(localStorage.getItem('scanCheckUsers')) || [];
-
-            // Validation Check 3: Duplicate Identity
-            const userExists = currentUsers.some(user => user.username.toLowerCase() === username.toLowerCase());
-            const isDefaultUser = ["teacher1", "student1", "admin"].includes(username.toLowerCase());
-
-            if (userExists || isDefaultUser) {
-                errorDisplay.innerText = "Username is already taken.";
-                return;
-            }
-
-            currentUsers.push({
-                username: username,
-                email: email,
-                role: role,
-                password: password
-            });
-
+            currentUsers[matchedUserIndex].password = newPassword;
             localStorage.setItem('scanCheckUsers', JSON.stringify(currentUsers));
-            alert("Teacher account registered successfully for " + username + "!");
-            window.location.href = "index.html";
+
+            messageDisplay2.innerText = "Success! Your password has been updated successfully. Redirecting...";
+            messageDisplay2.classList.add('success');
+
+            setTimeout(() => {
+                window.location.href = "log.html"; 
+            }, 3000);
         });
     </script>
 </body>
